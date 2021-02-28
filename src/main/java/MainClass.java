@@ -1,13 +1,6 @@
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.math.BigInteger;
-import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
 
+import java.io.IOException;
+import java.nio.file.*;
 public class MainClass {
 
 
@@ -15,7 +8,7 @@ public class MainClass {
 
 
 
-        FileCount fileCount = new FileCount(Paths.get("C:\\Users\\NoorZ\\Documents\\dir").toRealPath());
+        FileCount fileCount = new FileCount(Paths.get("C:\\Users\\NoorZ\\Documents\\NokiaTaskFileConcurrency\\directory").toRealPath());
         Long current = System.currentTimeMillis();
         fileCount.start();
         Long after = System.currentTimeMillis();
