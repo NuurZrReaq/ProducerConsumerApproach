@@ -14,7 +14,7 @@ public class FileCount {
 
     private Path dir;
     static BigInteger[] lowerCountResult = new BigInteger[26];
-    private final static BlockingQueue<File> queue = new ArrayBlockingQueue<>(4);
+    private final static BlockingQueue<File> queue = new ArrayBlockingQueue<>(100);
     private static boolean done = false;
 
     public FileCount(Path dir) {
@@ -26,12 +26,19 @@ public class FileCount {
         System.out.println(Thread.currentThread().getId()+"  \n"+Thread.currentThread().getName());
         try {
             Files.walkFileTree(dir, new SimpleFileVisitor<>() {
-
+                @Override
+                public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+                    if(dir.toFile().getName().equals("directory")){
+                        return FileVisitResult.SKIP_SUBTREE;
+                    }
+                    else return FileVisitResult.CONTINUE;
+                }
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
                     if (file.toFile().isFile()) {
                         try {
                             queue.put(file.toFile());
+                            //System.out.println(file.toFile().getName()+ "\t"+queue.size());
 
                         } catch (InterruptedException e) {
                             e.printStackTrace();
@@ -45,6 +52,9 @@ public class FileCount {
                     }
                 }
             });
+            System.out.println("done\n"+queue.size());
+            this.done = true;
+
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -52,18 +62,21 @@ public class FileCount {
     };
 
     final Runnable consumer = () -> {
-
-        while (!done) {
+        System.out.println("INNNN");
+        while ((!done || !queue.isEmpty() )) {
             try {
-                File file = queue.take();
-
+                System.out.println("in");
+                File file = queue.poll(1,TimeUnit.MILLISECONDS);
+                if(file == null) continue;
+                System.out.println(file.getName()+"\t"+queue.size());
                 process(file);
+                System.out.println(file.getName()+" finished");
 
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
-
+        System.out.println("OUUUUT");
     };
 
     private void process(File file) {
@@ -134,22 +147,24 @@ public class FileCount {
 
     public void start() throws InterruptedException {
 
-        ExecutorService pool = Executors.newCachedThreadPool();
+        ExecutorService pool = Executors.newFixedThreadPool(9);
         Thread producerThread = new Thread(producer);
-        Thread[] consumerThreads = new Thread[16];
-        for (int i = 0; i < 16; i++) {
+        Thread[] consumerThreads = new Thread[8];
+        for (int i = 0; i < 8; i++) {
             consumerThreads[i] = new Thread(consumer);
         }
 
 
 
         pool.execute(producerThread);
-        for (int i = 0; i <16; i++) {
+        for (int i = 0; i <8; i++) {
 
             pool.execute(consumerThreads[i]);
         }
-        pool.awaitTermination(1,TimeUnit.HOURS);
         pool.shutdown();
+        pool.awaitTermination(1,TimeUnit.HOURS);
+        System.out.println("pool done");
+
 
 
     }
