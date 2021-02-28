@@ -8,7 +8,7 @@ public class MainClass {
 
 
 
-        FileCount fileCount = new FileCount(Paths.get("C:\\Users\\NoorZ\\Documents\\NokiaTaskFileConcurrency\\directory").toRealPath());
+        FileCount fileCount = new FileCount(Paths.get("C:\\Users\\NoorZ\\Documents\\dir").toRealPath());
         Long current = System.currentTimeMillis();
         fileCount.start();
         Long after = System.currentTimeMillis();

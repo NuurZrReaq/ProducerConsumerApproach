@@ -23,7 +23,7 @@ public class FileCount {
     }
 
     final Runnable producer = () -> {
-
+        System.out.println(Thread.currentThread().getId()+"  \n"+Thread.currentThread().getName());
         try {
             Files.walkFileTree(dir, new SimpleFileVisitor<>() {
 
@@ -45,8 +45,6 @@ public class FileCount {
                     }
                 }
             });
-
-        this.done = true;
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -144,9 +142,11 @@ public class FileCount {
         }
 
 
+
         pool.execute(producerThread);
         for (int i = 0; i <16; i++) {
-            pool.submit(consumerThreads[i]);
+
+            pool.execute(consumerThreads[i]);
         }
         pool.awaitTermination(1,TimeUnit.HOURS);
         pool.shutdown();
