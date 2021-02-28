@@ -16,6 +16,7 @@ public class MainClass {
        // BigInteger[] lowerCount = fileCount.countLowerCase(Paths.get("C:\\Users\\NoorZ\\Documents\\dir\\dir - Copy\\file.txt").toFile());
         fileCount.start();
         Long after = System.currentTimeMillis();
+        System.out.println(after - current);
         System.out.println("time in millis = " + (after - current));
         for(int i=0;i<FileCount.lowerCountResult.length;i++){
             System.out.print((char)(i+'a') + "\t"+ FileCount.lowerCountResult[i]+'\n');

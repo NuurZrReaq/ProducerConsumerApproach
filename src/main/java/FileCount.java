@@ -1,8 +1,6 @@
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.math.BigInteger;
+import java.nio.Buffer;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -23,16 +21,16 @@ public class FileCount {
     }
 
     final Runnable producer = () -> {
-        System.out.println(Thread.currentThread().getId()+"  \n"+Thread.currentThread().getName());
+        //System.out.println(Thread.currentThread().getId()+"  \n"+Thread.currentThread().getName());
         try {
             Files.walkFileTree(dir, new SimpleFileVisitor<>() {
-                @Override
+               /* @Override
                 public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
                     if(dir.toFile().getName().equals("directory")){
                         return FileVisitResult.SKIP_SUBTREE;
                     }
                     else return FileVisitResult.CONTINUE;
-                }
+                }*/
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
                     if (file.toFile().isFile()) {
@@ -52,7 +50,7 @@ public class FileCount {
                     }
                 }
             });
-            System.out.println("done\n"+queue.size());
+            //System.out.println("done\n"+queue.size());
             this.done = true;
 
 
@@ -62,21 +60,21 @@ public class FileCount {
     };
 
     final Runnable consumer = () -> {
-        System.out.println("INNNN");
+      //  System.out.println("INNNN");
         while ((!done || !queue.isEmpty() )) {
             try {
-                System.out.println("in");
+               // System.out.println("in");
                 File file = queue.poll(1,TimeUnit.MILLISECONDS);
                 if(file == null) continue;
-                System.out.println(file.getName()+"\t"+queue.size());
+               // System.out.println(file.getName()+"\t"+queue.size());
                 process(file);
-                System.out.println(file.getName()+" finished");
+               // System.out.println(file.getName()+" finished");
 
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
-        System.out.println("OUUUUT");
+        //System.out.println("OUUUUT");
     };
 
     private void process(File file) {
@@ -89,32 +87,37 @@ public class FileCount {
 
 
     public BigInteger[] countLowerCase(File file) {
-        BigInteger[] tempLetterCount = new BigInteger[26];
-        init(tempLetterCount);
-        try {
-            FileInputStream fin = new FileInputStream(file);
-            BufferedInputStream fileReader = new BufferedInputStream(fin);
-            int c;
-            while ((c = fileReader.read()) != -1) {
+        int[] tempLetterCount = new int[26];
+        //init(tempLetterCount);
+        char [] charArray = new char[16*1024];
+        int numChar;
+        try( BufferedReader fileReader = new BufferedReader(new FileReader(file))) {
 
-                if (Character.isLowerCase((char) c) && c >= 'a' && c <= 'z') {
+            while ((numChar = fileReader.read(charArray)) >0) {
 
-                    try {
-                        tempLetterCount[(char) c - 'a'] = tempLetterCount[(char) c - 'a'].add(new BigInteger("1"));
-                    } catch (Exception e) {
+                for(int i =0;i<numChar;i++){
+                    if ( charArray[i]>='a'&& charArray[i] <='z') {
 
-                        e.printStackTrace();
-                        // System.out.println((char)c+ " --------------------- ");
+                        try {
+                            tempLetterCount[charArray[i]-'a']++;
+                        } catch (Exception e) {
 
+                            e.printStackTrace();
+                            // System.out.println((char)c+ " --------------------- ");
+
+
+
+
+                        }
 
                     }
 
                 }
-            }
-            fileReader.close();
-            fin.close();
 
-            return tempLetterCount;
+            }
+
+
+            return change(tempLetterCount);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -125,10 +128,19 @@ public class FileCount {
     }
 
 
-    private void init(BigInteger[] bigIntegers) {
+    private void  init(BigInteger[] bigIntegers) {
         for (int i = 0; i < bigIntegers.length; i++) {
             bigIntegers[i] = new BigInteger("0");
         }
+
+    }
+
+    private BigInteger[] change(int[] bigIntegers) {
+        BigInteger [] bigIntegers1 = new BigInteger[26];
+        for (int i = 0; i < bigIntegers.length; i++) {
+            bigIntegers1[i] = new BigInteger(Integer.toString(bigIntegers[i]));
+        }
+        return bigIntegers1;
 
     }
 
